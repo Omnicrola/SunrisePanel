@@ -1,6 +1,8 @@
 #include <Button.h>
 #include <ezTime.h>
 #include <WiFi.h>
+#include <HTTPClient.h>
+#include <Arduino_JSON.h>
 #include <Adafruit_NeoPixel.h> 
 
 // WiFi config
