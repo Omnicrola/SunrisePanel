@@ -9,12 +9,9 @@ void updateLightPanel() {
   if(isAfterStartTime && isBeforeEndTime) {
     int millisPastStart = currentTime - currentStartTime;
     float progression = millisPastStart / (currentFadeInDuration * 60 * 1000);
-    Serial.print("progression = ");
-    Serial.print(millisPastStart);
-    Serial.print(" / (");
-    Serial.print(currentFadeInDuration);
-    Serial.println(" * 60 * 1000)");
     
+    debugTimeProgression(millisPastStart, currentFadeInDuration);
+
     progression = constrain(progression, 0.0, 1.0);
     updatePanelBrightness(progression);
   } else {
@@ -35,8 +32,7 @@ void updatePanelBrightness(float panelProgression) { // panelProgression 0.0 - 1
   int primaryBrightness = floor(255.0 * progressionCurved) + 1;
   int primaryCount = (int)(totalIncrements * progressionCurved) % TOTAL_PIXELS;
 
-  debugProgression(panelProgression, progressionCurved, primaryBrightness, primaryCount);
-
+  debugLightProgression(panelProgression, progressionCurved, primaryBrightness, primaryCount);
 
   int brightness = 0;
   for(int p=0; p<TOTAL_PIXELS; p++) {
@@ -91,36 +87,45 @@ void fullPower() {
 }
 
 int getCurrentTimeInMillis() {
-  // NTP time server config
-  Timezone timeProvider;
-  timeProvider.setLocation("America/Detroit");
+   struct tm timeinfo;
 
-   return getTimeInMillis(timeProvider.hour(), timeProvider.minute(), timeProvider.second(), timeProvider.ms());
+  if(!getLocalTime(&timeinfo)){
+    Serial.println("Failed to obtain time");
+    return 0;
+  }
+  
+  struct timeval tv_now;
+  gettimeofday(&tv_now, NULL);
+  int64_t millis = (int64_t)tv_now.tv_usec/1000;
+
+   return getTimeOfDayInMillis(timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec, millis);
 }
 
-int getTimeInMillis(int hours, int minutes, int seconds, int millis) {
-  int convertedHours = hours * 60 * 60 * 1000;
-  int convertedMinutes = minutes * 60 * 1000;
-  int convertedSeconds = seconds * 1000;
-  return convertedHours + convertedMinutes + convertedSeconds + millis;
-}
 
 void debugTime(int currentTime, int currentStartTime, int currentEndTime) {
-  Serial.print("Time: ");
+  Serial.print("Time,");
   Serial.print(currentTime);
-  Serial.print(" | ");
+  Serial.print(",");
   Serial.print(currentStartTime);
-  Serial.print(" | ");
+  Serial.print(",");
   Serial.println(currentEndTime);
 }
-void debugProgression(float panelProgression, float progressionCurved, int primaryBrightness, int primaryCount) {
-  Serial.print("progression: ");
+
+void debugTimeProgression(float millisPastStart, float fadeInDuration) {
+    Serial.print("progression,");
+    Serial.print(millisPastStart);
+    Serial.print(",");
+    Serial.println(currentFadeInDuration);
+}
+
+void debugLightProgression(float panelProgression, float progressionCurved, int primaryBrightness, int primaryCount) {
+  Serial.print("progression,");
   Serial.print(panelProgression*100);
-  Serial.print("% (");
+  Serial.print(",");
   Serial.print(progressionCurved*100);
-  Serial.print("%) brightness: ");
+  Serial.print(",");
   Serial.print(primaryBrightness);
-  Serial.print(" primaryPixels: ");
+  Serial.print(",");
   Serial.print(primaryCount);
   Serial.println();
 }

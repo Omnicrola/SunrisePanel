@@ -1,5 +1,5 @@
+#include "esp_netif_sntp.h"
 #include <Button.h>
-#include <ezTime.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <Arduino_JSON.h>
@@ -11,7 +11,7 @@ const char* WIFI_SSID = "IoT_Guest";
 const char* WIFI_PASS = "iamguest99";
 
 ///////////// Sunrise config /////////////////
-int getTimeInMillis(int hours, int minutes, int seconds, int millis); // function declaration
+int getTimeOfDayInMillis(int hours, int minutes, int seconds, int millis); // function declaration
 
 // WS2812 configuration
 #define LED_PIN 32
@@ -21,9 +21,11 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(TOTAL_PIXELS, LED_PIN, NEO_GRB + NEO
 
 Button modeButton(22);
 
+const char* NTP_SERVER = "0.north-america.pool.ntp.org";
+
 float fadeInDuration = 60; // in minutes
-int startTime = getTimeInMillis(6, 30, 0, 0);
-int endTime = getTimeInMillis(9, 0, 0, 0);
+int startTime = getTimeOfDayInMillis(6, 30, 0, 0);
+int endTime = getTimeOfDayInMillis(9, 0, 0, 0);
 int currentStartTime = startTime;
 int currentEndTime = endTime;
 float currentFadeInDuration = fadeInDuration;
@@ -47,7 +49,6 @@ void setup() {
 bool isButtonPressed = false;
 int modeState = 0;
 void loop() {
-  events(); // updates eZtime
 
   if(modeButton.released()) {
     setMode(modeState + 1);
